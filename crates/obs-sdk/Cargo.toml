@@ -1,0 +1,8 @@
+[package]
+name = "obs-sdk"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+obs-proto = { path = "../obs-proto" }
+tokio = { version = "1", features = ["full"] }
