@@ -118,6 +118,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "obs-storage"
+version = "0.1.0"
+dependencies = [
+ "obs-proto",
+ "serde",
+]
+
+[[package]]
 name = "parking_lot"
 version = "0.12.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
