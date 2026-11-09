@@ -63,12 +63,18 @@ pub struct Span {
 
 impl Span {
     pub fn duration_ns(&self) -> u64 {
-        self.end_time_unix_nano.saturating_sub(self.start_time_unix_nano)
+        self.end_time_unix_nano
+            .saturating_sub(self.start_time_unix_nano)
     }
 
     pub fn duration_ms(&self) -> f64 {
         self.duration_ns() as f64 / 1_000_000.0
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct IngestTracesRequest {
+    pub spans: Vec<Span>,
 }
 
 #[cfg(test)]
@@ -82,7 +88,10 @@ mod tests {
 
         let mut attributes = BTreeMap::new();
         attributes.insert("http.method".to_string(), AttributeValue::from("POST"));
-        attributes.insert("http.status_code".to_string(), AttributeValue::from(200_i64));
+        attributes.insert(
+            "http.status_code".to_string(),
+            AttributeValue::from(200_i64),
+        );
         attributes.insert("cache.hit".to_string(), AttributeValue::from(true));
 
         let span = Span {

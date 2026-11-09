@@ -1,4 +1,4 @@
-use obs_proto::{LogRecord, MetricSample, Span};
+use obs_proto::{IngestTracesRequest, LogRecord, MetricSample, Span};
 use std::future::Future;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -65,6 +65,42 @@ impl InMemoryExporter {
 impl TelemetryExporter for InMemoryExporter {
     async fn export(&self, mut batch: Vec<TelemetryItem>) {
         self.items.lock().unwrap().append(&mut batch);
+    }
+}
+
+#[derive(Clone)]
+pub struct HttpExporter {
+    client: reqwest::Client,
+    base_url: String,
+}
+
+impl HttpExporter {
+    pub fn new(base_url: &str) -> Self {
+        Self {
+            client: reqwest::Client::new(),
+            base_url: base_url.trim_end_matches('/').to_string(),
+        }
+    }
+}
+
+impl TelemetryExporter for HttpExporter {
+    async fn export(&self, batch: Vec<TelemetryItem>) {
+        let spans: Vec<Span> = batch
+            .into_iter()
+            .filter_map(|item| match item {
+                TelemetryItem::Span(span) => Some(span),
+                _ => None,
+            })
+            .collect();
+
+        if !spans.is_empty() {
+            let _ = self
+                .client
+                .post(format!("{}/v1/traces", self.base_url))
+                .json(&IngestTracesRequest { spans })
+                .send()
+                .await;
+        }
     }
 }
 
